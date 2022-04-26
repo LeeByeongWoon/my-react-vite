@@ -33,6 +33,7 @@ const CompareColumn = () => {
 
     // // gen file coloumn
     useEffect(() => {
+        console.log(encoding);
         if (files.length !== 0) {
             csvHeader();
         }
@@ -40,9 +41,9 @@ const CompareColumn = () => {
 
     // filter
     useEffect(() => {
-        console.log(firstFileColumn);
         setDffIndex([]);
         if (firstFileColumn.length !== 0) {
+            console.log(firstFileColumn);
             files.map((file, index) => {
                 if (index !== 0)
                     Papa.parse(file.slice(0, 1024), {
@@ -51,7 +52,9 @@ const CompareColumn = () => {
                             const temp = result.data.slice(0, 1)[0];
                             const intersection = firstFileColumn.filter((el) => !temp.includes(el));
                             if (intersection.length !== 0) {
+                                //목록 살리기
                                 setDffIndex((prev) => [...prev, file]);
+                                //지우기
                                 // setFiles((prev) => prev.filter((x) => x !== file));
                             }
                         },
@@ -76,8 +79,8 @@ const CompareColumn = () => {
             encoding,
             complete: (result: Papa.ParseResult<string[]>) => {
                 const fstCol = result.data.slice(0, 1)[0];
-                if (fstCol.filter((f) => !firstFileColumn.includes(f)).length !== 0)
-                    setFirstFileColumn([...result.data.slice(0, 1)[0]]);
+                // if (fstCol.filter((f) => !firstFileColumn.includes(f)).length !== 0)
+                setFirstFileColumn(fstCol);
             },
         });
     };
