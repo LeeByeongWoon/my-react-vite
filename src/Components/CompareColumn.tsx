@@ -1,7 +1,7 @@
 import Papa from "papaparse";
 import { memo, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-
+import oc from "open-color";
 type ColumnTypes = string[];
 
 const ColumnWrap = styled.div`
@@ -21,6 +21,7 @@ const CompareColumn = () => {
     const ref = useRef<HTMLInputElement>(null);
 
     const [firstFileColumn, setFirstFileColumn] = useState<ColumnTypes>([]);
+    const [dffIndex, setDffIndex] = useState<File[]>([]);
     const [encoding, setEncoding] = useState<string>("utf-8");
 
     //set webkit directory
@@ -40,6 +41,7 @@ const CompareColumn = () => {
     // filter
     useEffect(() => {
         console.log(firstFileColumn);
+        setDffIndex([]);
         if (firstFileColumn.length !== 0) {
             files.map((file, index) => {
                 if (index !== 0)
@@ -49,7 +51,8 @@ const CompareColumn = () => {
                             const temp = result.data.slice(0, 1)[0];
                             const intersection = firstFileColumn.filter((el) => !temp.includes(el));
                             if (intersection.length !== 0) {
-                                setFiles((prev) => prev.filter((x) => x !== file));
+                                setDffIndex((prev) => [...prev, file]);
+                                // setFiles((prev) => prev.filter((x) => x !== file));
                             }
                         },
                     });
@@ -99,9 +102,17 @@ const CompareColumn = () => {
                 }}
             ></input>
             <ul>
-                {files?.map((file, index) => (
-                    <li key={index}>{file.name}</li>
-                ))}
+                {files?.map((file, index) =>
+                    dffIndex.includes(file) ? (
+                        <li style={{ color: oc.red[7], listStyleType: "none" }} key={index}>
+                            {file.name}
+                        </li>
+                    ) : (
+                        <li key={index} style={{ listStyleType: "none" }}>
+                            {file.name}
+                        </li>
+                    ),
+                )}
             </ul>
 
             <div>
