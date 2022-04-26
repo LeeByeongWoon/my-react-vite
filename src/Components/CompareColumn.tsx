@@ -1,15 +1,13 @@
-import Papa, { ParseLocalConfig } from "papaparse";
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import Papa from "papaparse";
+import { memo, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
-type Props = {};
 type ColumnTypes = string[];
 
 const ColumnWrap = styled.div`
     display: flex;
     flex-flow: row;
     flex-wrap: wrap;
-    /* overflow-x: scroll; */
     white-space: normal;
 `;
 const Text = styled.p`
@@ -18,99 +16,69 @@ const Text = styled.p`
     margin: 0;
     margin-right: 0.5rem;
 `;
-const CompareColumn = (props: Props) => {
+const CompareColumn = () => {
     const [files, setFiles] = useState<File[]>([]);
     const ref = useRef<HTMLInputElement>(null);
 
-    const [deleteList, setDeleteList] = useState<string[]>([]);
     const [firstFileColumn, setFirstFileColumn] = useState<ColumnTypes>([]);
-    const [etcFileColumn, setEtcFileColumn] = useState<ColumnTypes[]>([]);
-    const [filterFlag, setFilterFlag] = useState<boolean>(false);
-
     const [encoding, setEncoding] = useState<string>("utf-8");
 
     //set webkit directory
     useEffect(() => {
-        console.log(ref.current?.files);
         if (ref.current !== null) {
             ref.current.setAttribute("webkitdirectory", "true");
         }
     }, [ref.current]);
 
-    // gen file coloumn
+    // // gen file coloumn
     useEffect(() => {
-        csvHeader();
+        if (files.length !== 0) {
+            csvHeader();
+        }
     }, [files, encoding]);
 
+    // filter
     useEffect(() => {
-        files.map((file) => {
-            Papa.parse(file.slice(0, 1024), {
-                encoding,
-                complete: (result: Papa.ParseResult<string[]>) => {
-                    const temp = result.data.slice(0, 1)[0];
-                    // firstFileColumn.filter(el=>temp.includes(firstFileColumn))
-                },
+        console.log(firstFileColumn);
+        if (firstFileColumn.length !== 0) {
+            files.map((file, index) => {
+                if (index !== 0)
+                    Papa.parse(file.slice(0, 1024), {
+                        encoding,
+                        complete: (result: Papa.ParseResult<string[]>) => {
+                            const temp = result.data.slice(0, 1)[0];
+                            const intersection = firstFileColumn.filter((el) => !temp.includes(el));
+                            if (intersection.length !== 0) {
+                                setFiles((prev) => prev.filter((x) => x !== file));
+                            }
+                        },
+                    });
             });
-        });
+        }
     }, [firstFileColumn]);
 
-    // const parseFiles = (csvFile: File[]) => {
-    //     if (csvFile.length !== 0) {
-    //         csvFile.map((file, index) => {
-    //             if (index === 0) {
-    //                 Papa.parse(file.slice(0, 1024 * 1024 * 30), {
-    //                     encoding,
-    //                     complete: (result: Papa.ParseResult<string[]>) => {
-    //                         setFirstFileColumn((prev) => ({
-    //                             ...prev,
-    //                             fileColumn: result.data.slice(0, 1)[0],
-    //                         }));
-    //                     },
-    //                 });
-    //             } else {
-    //                 Papa.parse(file.slice(0, 1000), {
-    //                     encoding,
-    //                     complete: (result: Papa.ParseResult<string[]>) => {
-
-    //                     },
-    //                 });
-    //             }
-    //         });
-    //     }
-    // };
-    const csvHeader = () => {
-        Papa.parse(files[0].slice(0, 1024 * 1024 * 30), {
-            encoding,
-            complete: (result: Papa.ParseResult<string[]>) => {
-                setFirstFileColumn((prev) => ({
-                    ...prev,
-                    fileColumn: result.data.slice(0, 1)[0],
-                }));
-            },
-        });
-    };
-
+    //file input
     const onChange = (files: File[]) => {
+        setFirstFileColumn([]);
         const result = files.filter((file) => file.type === "text/csv");
         setFiles(result);
         const dataTransfer = new DataTransfer();
         result.map((file) => dataTransfer.items.add(file));
         if (ref.current !== null) ref.current.files = dataTransfer.files;
     };
-    // const filterFiles = () => {
-    //     etcFileColumn.map((fileColumn, index) => {
-    //         const inter = fileColumn.fileColumn.filter((x) => firstFileColumn.fileColumn.includes(x));
-    //         if (inter.length !== firstFileColumn.fileColumn.length) {
-    //             console.log(inter);
-    //             etcFileColumn.slice(index, 1);
-    //             setDeleteList((prev) => [...prev, fileColumn.fileName!]);
-    //             setFiles((prev) => prev.filter((file) => file.name !== fileColumn.fileName));
-    //         }
-    //     });
-    //     const dataTransfer = new DataTransfer();
-    //     files.map((file) => dataTransfer.items.add(file));
-    //     if (ref.current !== null) ref.current.files = dataTransfer.files;
-    // };
+
+    // gen header
+    const csvHeader = () => {
+        Papa.parse(files[0].slice(0, 1024 * 1024 * 30), {
+            encoding,
+            complete: (result: Papa.ParseResult<string[]>) => {
+                const fstCol = result.data.slice(0, 1)[0];
+                if (fstCol.filter((f) => !firstFileColumn.includes(f)).length !== 0)
+                    setFirstFileColumn([...result.data.slice(0, 1)[0]]);
+            },
+        });
+    };
+
     return (
         <div>
             <select
@@ -131,12 +99,11 @@ const CompareColumn = (props: Props) => {
                 }}
             ></input>
             <ul>
-                {/* files ? files : null; */}
                 {files?.map((file, index) => (
                     <li key={index}>{file.name}</li>
                 ))}
             </ul>
-            {/* <button onClick={filterFiles}>필터링</button> */}
+
             <div>
                 <h3>columns</h3>
                 <ColumnWrap>
