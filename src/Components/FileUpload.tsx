@@ -13,7 +13,6 @@ function Lists({ file }: Props) {
 export default function FileUpload() {
     //initialize
     const [files, setFiles] = useState<File[] | null>(null);
-    const [progress, setProgress] = useState<number>(0);
     const ref = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -60,7 +59,6 @@ export default function FileUpload() {
                     if (e.target.files !== null) setFiles(Object.values(e.target.files));
                 }}
             ></input>
-            <span>progress:{progress}</span>
             <button onClick={() => onclick()} disabled={files?.length === 0}>
                 파일 전송
             </button>

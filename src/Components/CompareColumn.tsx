@@ -126,6 +126,13 @@ const CompareColumn = () => {
                     ))}
                 </ColumnWrap>
             </div>
+            <button
+                onClick={() => {
+                    setFiles((prev) => prev.filter((f) => f !== prev[0]));
+                }}
+            >
+                remove one
+            </button>
         </div>
     );
 };
