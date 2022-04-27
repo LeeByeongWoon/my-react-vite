@@ -1,6 +1,19 @@
-import { PathParams, rest } from "msw";
+import { DefaultRequestBody, rest } from "msw";
 
+type RequestType = DefaultRequestBody & {
+    value: number;
+};
 export const handler = [
+    rest.put<RequestType>("/counter/increament", async (req, res, ctx) => {
+        const request = req.body;
+        console.log(request);
+        if (request !== null && request !== undefined)
+            return res(
+                ctx.json({
+                    value: request.value + 2,
+                }),
+            );
+    }),
     rest.get("/hello", async (req, res, ctx) => {
         return res(
             ctx.json({
